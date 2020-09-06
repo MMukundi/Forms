@@ -7,7 +7,7 @@
 #include <iostream>
 #include <initializer_list>
 
-typedef float Number;
+typedef double Number;
 
 // template<typename T>
 // typename std::enable_if<std::is_arithmetic<T>::value, T>::type

@@ -1,3 +1,3 @@
-#include "src/Vector.h"
-#include "src/common.h"
-#include "src/Space.h"
+#include "src/Vec/Vector.h"
+#include "src/Vec/common.h"
+#include "src/Vec/Space.h"

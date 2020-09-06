@@ -12,11 +12,12 @@ class Vector
    std::vector<Component> components;
 
 public:
+   int dimensions;
    typedef Component componentType;
    typedef Component &cRef;
    typedef Vector<Component> Vector_C;
    typedef Vector_C &AbstractVectorRef;
-   const int dimensions;
+   // const int dimensions;
 
    Vector(std::initializer_list<Component> l) : dimensions(l.size())
    {
@@ -26,17 +27,18 @@ public:
    {
       components = l;
    }
-   Vector(const Vector<Component> &v) : dimensions(v.dimensions)
-   {
-      components.resize(v.dimensions);
-      auto tc = components.begin();
-      auto c = v.components.begin();
-      auto e = v.components.end();
+   // Vector(const Vector<Component> &v) : dimensions(v.dimensions)
+   // {
+   //    components.resize(v.dimensions);
+   //    auto tc = components.begin();
+   //    auto c = v.components.begin();
+   //    auto e = v.components.end();
 
-      while(c!=e){
-         *tc = *(c++);
-      }
-   }
+   //    while (c != e)
+   //    {
+   //       *tc = *(c++);
+   //    }
+   // }
    Vector() : dimensions(0)
    {
    }
@@ -77,8 +79,10 @@ public:
    {
       if (dimensions != dimensions)
          throw("Dimension mismatch");
+
       for (int i = 0; i < dimensions; i++)
          components[i] *= n;
+
       return *this;
    }
 
@@ -98,20 +102,20 @@ public:
    {
       if (dimensions != v.dimensions)
          throw("Dimension mismatch");
-      Component dProduct;
-      Component magSquaredV;
+      Component dProduct = components[0] * v.components[0];
+      Component magSquaredV = v.components[0] * v.components[0];
 
-      for (int i = 0; i < dimensions; i++)
+      for (int i = 1; i < dimensions; i++)
       {
          dProduct += components[i] * v.components[i];
          magSquaredV += v.components[i] * v.components[i];
+         // std::cout<<v.components[i]<<"=>"<<magSquaredV<<std::endl;
       }
-
       Component scaleVBy = dProduct / magSquaredV;
 
       for (int i = 0; i < dimensions; i++)
       {
-         components[i] = v.components[i] / scaleVBy;
+         components[i] = v.components[i] * scaleVBy;
       }
 
       return *this;
@@ -121,11 +125,11 @@ public:
       if (s.basis.vectorDimensions != dimensions)
          throw("Dimension mismatch");
       std::vector<Component> projectionComponents = std::vector<Component>(s.basis.vectorDimensions);
-      printf("Projecting %s into %s\n", toString().c_str(), s.toString().c_str());
+      // printf("Projecting %s into %s\n", toString().c_str(), s.toString().c_str());
       for (Vector<Component> basisVector : s.basis)
       {
          // Code adapted from "projectedOnto"
-         printf("\nProjecting %s onto %s\nCurrent Projection:%s\n", toString().c_str(), basisVector.toString().c_str(), "pc");
+         // printf("\nProjecting %s onto %s\nCurrent Projection:%s\n", toString().c_str(), basisVector.toString().c_str(), "pc");
          Component dProduct = 0;
          Component basisVectorMagSquared = 0;
 
@@ -135,7 +139,7 @@ public:
             basisVectorMagSquared += basisVector.components[i] * basisVector.components[i];
          }
 
-         printf("Dot Product: %f, Msq:%f\n", dProduct, basisVectorMagSquared);
+         // printf("Dot Product: %f, Msq:%f\n", dProduct, basisVectorMagSquared);
          if (dProduct * basisVectorMagSquared == 0)
          {
             // projectionComponents[i]=0;
@@ -152,11 +156,19 @@ public:
       // Component[] newComponents = new Component[dimensions];
       // for(int i = 0; i < dimensions;i++)newComponents[i] =
       // components[i]+v.components[i];
-      printf("Projection: %s\n\n", "pc");
+      // printf("Projection: %s\n\n", "pc");
       return projectionComponents;
    }
+   auto begin() const noexcept
+   {
+      return components.begin();
+   }
+   auto end() const noexcept
+   {
+      return components.end();
+   }
 
-   std::string toString()
+   std::string toString() const noexcept
    {
       if (dimensions == 0)
          return std::string("Vector[]");
@@ -175,23 +187,28 @@ public:
 
    bool equals(Vector<Component> v)
    {
-      return _hash() == v._hash();
-   }
-
-   unsigned long _hash()
-   {
-      unsigned long h = 0;
-      int i = 0;
-      for (Component c : components)
+      if (dimensions != v.dimensions)
+         return false;
+      for (int i = 0; i < dimensions; i++)
       {
-         std::cout<<h<<", ";
-         h = h ^ 21 + __hash(c);
-         i++;
+         if (components[i] != v.components[i])
+            return false;
       }
-      return h;
+      return true;
    }
 
-   Vector<Component>  clone() const
+   Vector<Component> normalize()
+   {
+      // return *this;
+      return scale(1 / magnitude());
+   }
+
+   std::size_t hash() const
+   {
+      return std::hash<Vector<Component>>{}(*this);
+   }
+
+   Vector<Component> clone() const
    {
       return Vector<Component>(components);
    }
@@ -227,11 +244,23 @@ public:
 
    Vector<Component> &operator+=(Vector<Component> &v);
    Vector<Component> &operator-=(Vector<Component> &v);
+
+   // Vector<Component> &operator=(const Vector &o)
+   // {
+   //    if (this != &o)
+   //    {
+   //       this->dimensions = o.dimensions;
+   //       for (int i = 0; i < this->dimensions;i++){
+   //          components[i]=o.components[i];
+   //       }
+   //    }
+   //    return *this;
+   // }
 };
 template <typename Component>
-std::ostream &operator<<(std::__1::basic_ostream<char, std::__1::char_traits<char> >& s, Vector<Component> v)
+std::ostream &operator<<(std::__1::basic_ostream<char, std::__1::char_traits<char>> &s, Vector<Component> v)
 {
-   
+
    return (s << v.toString().c_str());
 }
 template <typename Component>
@@ -322,4 +351,22 @@ Vector<Component> &Vector<Component>::operator-=(Vector<Component> &v)
 {
    return subtract(v);
 };
-// class Vector:public Vector<Component>{};
+
+namespace std
+{
+   template <typename Component>
+   struct hash<Vector<Component>>
+   {
+      std::size_t operator()(Vector<Component> const &v) const noexcept
+      {
+         std::size_t h = 301;
+         auto hasher = std::hash<Component>{};
+         int i = 0;
+         for (Component c : v)
+         {
+            h = h ^ (hasher(c) << (i++));
+         }
+         return h;
+      }
+   };
+}; // namespace std
