@@ -7,6 +7,9 @@ a - c
 */
 namespace Forms{
 
+    /** 
+     * The numerical type used to represent numbers in Forms
+    */
     typedef float ConstantType;
 
     /**
